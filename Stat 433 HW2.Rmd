@@ -1,0 +1,49 @@
+---
+title: "Stat433 HW 2"
+author: "Annie Salcedo"
+date: "2/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r flights}
+library(dplyr)
+library(nycflights13)
+library(ggplot2)
+
+flights
+```
+
+# 1) How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+```{r flights}
+summary(flights)
+flights %>% filter(is.na(dep_time))
+```
+8255 flights have a missing dep_time.
+dep_delay, arr_time, arr_delay, and air_time are also missing.
+these rows represent canceled flights, flights that never took off
+
+
+# 2) Currently dep_time and sched_dep_time are convenient to look at, but hard to compute with because they’re not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
+```{r flights}
+mutate(flights, dep_time = (dep_time %/% 100) * 60 + (dep_time %% 100), sched_dep_time = (sched_dep_time %/% 100) * 60 + (sched_dep_time %% 100))
+
+```
+
+
+# 3) Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay? Use multiple dyplr operations, all on one line, concluding with ggplot(aes(x= ,y=)) + geom_point()
+```{r flights}
+flights %>% group_by(month, day) %>%
+  summarize(avg_dep_delay = mean(dep_delay, na.rm = TRUE), prop_cancelled = sum(is.na(dep_time)/n()))  %>%
+  ggplot(mapping = aes(x = avg_dep_delay, y = prop_cancelled)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+  labs(x = "Delays per Day", y = "Proportion of Cancelled Flights per Day", title = "Average Delay vs Cancelled Flights")
+
+```
